@@ -1,0 +1,121 @@
+/*
+  Prisma v7 schema.
+  - datasource URL is configured in prisma.config.ts (not here)
+  - generator uses provider = "prisma-client" (Prisma v7 syntax)
+  - client is generated into app/generated/prisma so it's importable as @/app/generated/prisma
+*/
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String   // hashed with bcrypt — never store plaintext
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  USER
+}
+
+// ─── CRM ────────────────────────────────────────────────────────────────────
+
+model Contact {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  phone     String?
+  company   String?
+  notes     String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Orders ─────────────────────────────────────────────────────────────────
+
+model Order {
+  id        String      @id @default(cuid())
+  reference String      @unique @default(cuid())
+  status    OrderStatus @default(DRAFT)
+  contactId String
+  contact   Contact     @relation(fields: [contactId], references: [id])
+  lines     OrderLine[]
+  total     Float       @default(0)
+  notes     String?
+  invoices  Invoice[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderLine {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+  total     Float   // quantity * unitPrice, computed server-side on write
+}
+
+// ─── Stock ──────────────────────────────────────────────────────────────────
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  sku         String      @unique
+  description String?
+  price       Float
+  stock       Int         @default(0)
+  orderLines  OrderLine[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+// ─── Invoices ───────────────────────────────────────────────────────────────
+
+model Invoice {
+  id        String        @id @default(cuid())
+  number    String        @unique
+  orderId   String
+  order     Order         @relation(fields: [orderId], references: [id])
+  status    InvoiceStatus @default(DRAFT)
+  issuedAt  DateTime      @default(now())
+  dueAt     DateTime
+  total     Float
+  paidAt    DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
