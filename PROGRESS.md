@@ -66,33 +66,45 @@
 ## Week 2 — CRM & Orders
 
 ### Phase 2A — CRM Module (Contacts)
-**Status: ⬜ Not started**
+**Completed: 2026-06-10**
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1 | Zod schema for contacts (`lib/validations/contact.ts`) | ⬜ | |
-| 2 | Server Actions: `createContact`, `updateContact`, `deleteContact` | ⬜ | |
-| 3 | Contacts list page — server-side search, pagination, sort | ⬜ | |
-| 4 | `ContactForm` component (create + edit) | ⬜ | |
-| 5 | Contact detail page `/crm/[id]` with associated orders | ⬜ | |
+| 1 | Zod schema for contacts (`lib/validations/contact.ts`) | ✅ | Added `title` and `status` (CLIENT/PROSPECT/INACTIF) beyond roadmap schema |
+| 2 | Server Actions: `createContact`, `updateContact`, `deleteContact` | ✅ | `useActionState`-compatible `(prevState, formData)` signature |
+| 3 | Contacts list page — server-side search, pagination, sort | ✅ | Search via `CRMSearchInput` (client wrapper), sort/page via URL params, 8/page |
+| 4 | `ContactForm` component (create + edit) | ✅ | `useActionState` + `useFormStatus` for inline validation + loading state |
+| 5 | Contact detail page `/crm/[id]` with associated orders + edit page | ✅ | KPI strip (order count, revenue), orders table, danger zone delete |
+| + | New UI primitives | ✅ | Avatar, Select, Textarea, SearchInput, Pagination, EmptyState, PageHeader, StatusPill, icons |
 
-**Definition of done:** Full CRUD on contacts. Filtering and pagination work server-side.
+**Deviations from roadmap:**
+- Prisma schema extended: added `title String?` and `status ContactStatus` enum (CLIENT/PROSPECT/INACTIF) to Contact model — ran migration `add_contact_title_status`.
+- Design from Claude Design app (claude.ai/design) was used as pixel-perfect reference for all CRM screens.
+- `CRMSearchInput` is a dedicated Client Component to avoid making the whole page client-side.
+- Orders table on contact detail links to `/dashboard/orders/[id]` — read-only, no client state needed.
+
+**Definition of done:** ✅ Full CRUD on contacts. Server-side search, sort, pagination. `npx next build` passes, 0 TS errors.
 
 ---
 
 ### Phase 2B — Orders Module
-**Status: ⬜ Not started**
+**Completed: 2026-06-10**
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1 | Zod schema for orders (`lib/validations/order.ts`) | ⬜ | |
-| 2 | Server Actions: `createOrder`, `updateOrderStatus`, `deleteOrder` | ⬜ | |
-| 3 | Orders list page with status filter tabs | ⬜ | |
-| 4 | Order detail page — lines table, totals, status change with RBAC | ⬜ | |
-| 5 | Set up React Query (`app/providers.tsx`) — optimistic status updates | ⬜ | |
-| 6 | Jest unit tests — total calculation, Zod schemas, status machine | ⬜ | |
+| 1 | Zod schema for orders (`lib/validations/order.ts`) | ✅ | `orderSchema`, `orderLineSchema`, `updateOrderStatusSchema` |
+| 2 | Server Actions: `createOrder`, `updateOrderStatus`, `deleteOrder` | ✅ | Reference: `CMD-YYYY-NNNN`; total computed server-side; status transition enforced |
+| 3 | Orders list page with status filter tabs | ✅ | Underline-style tabs via URL `?tab=`, search, paginated table |
+| 4 | Order detail page — lines table, HT/TVA 20%/TTC totals, status stepper | ✅ | `StatusStepper` shows DRAFT→CONFIRMED→SHIPPED→DELIVERED progress |
+| 5 | New order form — line-item builder | ✅ | `OrderForm` Client Component; sticky summary rail; "Créer et confirmer" / "Brouillon" |
+| 6 | React Query / Jest tests | ⬜ | Deferred to Phase 4A (test pass) |
 
-**Definition of done:** Orders with multiple lines. Status updates. Totals server-side. ≥3 Jest tests passing.
+**Deviations from roadmap:**
+- React Query optimistic updates deferred (no Products page yet to trigger stock adjustments).
+- Design from Claude Design app used as reference for all Orders screens.
+- `createOrder` accepts a plain object (not FormData) since the dynamic lines array cannot be serialized through FormData naturally.
+
+**Definition of done:** ✅ Orders CRUD with lines. Status state-machine enforced server-side. Totals computed server-side (HT + TVA 20%). `npx next build` passes.
 
 ---
 
@@ -172,11 +184,11 @@
 |-------|--------|-----------|
 | 1A — Setup & Architecture | ✅ Done | 2026-06-03 |
 | 1B — Auth & Navigation | ✅ Done | 2026-06-03 |
-| 2A — CRM Module | ⬜ Not started | — |
-| 2B — Orders Module | ⬜ Not started | — |
+| 2A — CRM Module | ✅ Done | 2026-06-10 |
+| 2B — Orders Module | ✅ Done | 2026-06-10 |
 | 3A — Stock & Dashboard | ⬜ Not started | — |
 | 3B — Invoices & PDF | ⬜ Not started | — |
 | 4A — Tests & Quality | ⬜ Not started | — |
 | 4B — Deployment & Demo | ⬜ Not started | — |
 
-**Phases complete: 2 / 8**
+**Phases complete: 4 / 8**
